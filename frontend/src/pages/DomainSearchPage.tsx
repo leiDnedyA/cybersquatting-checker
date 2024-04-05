@@ -7,49 +7,46 @@ type DomainInfo = {
   urlConstruction: string;
   category: string;
   logoDetected: boolean;
-  riskLevel: 1 | 2 | 3 | 4 | 5;
+  riskLevel: 1 | 2 | 3;
 };
 
-const DomainSearchPage = () => {
+type RiskStyle = {
+  padding: string;
+  borderRadius: string;
+  display: string;
+  color?: string;
+  backgroundColor?: string;
+}
+
+function getRiskLevelStyle(level: 1 | 2 | 3) : RiskStyle {
+  const result: RiskStyle = {
+    padding: '3px 10px',
+    borderRadius: '3px',
+    display: 'inline-block'
+  };
+  if (level === 1) {
+    result.color = 'text.secondary';
+  } else if (level === 2) {
+    result.backgroundColor = '#ffaa00';
+  } else {
+    result.backgroundColor = '#ff3333';
+    result.color = '#ffffff';
+  }
+  return result;
+}
+
+function DomainSearchPage() {
   const [domain, setDomain] = useState('');
   const [similarDomains, setSimilarDomains] = useState<DomainInfo[]>([]);
 
-  const handleSearch = () => {
-    const similarDomains: DomainInfo[] = [
-      {
-        domain: 'example.com',
-        ipAddress: '192.168.1.100',
-        urlConstruction: 'legitimate',
-        category: 'business',
-        logoDetected: true,
-        riskLevel: 1,
-      },
-      {
-        domain: 'exmple.com',
-        ipAddress: '10.0.0.1',
-        urlConstruction: 'suspicious',
-        category: 'unknown',
-        logoDetected: false,
-        riskLevel: 4,
-      },
-      {
-        domain: 'examle.com',
-        ipAddress: '172.16.0.50',
-        urlConstruction: 'legitimate',
-        category: 'personal',
-        logoDetected: true,
-        riskLevel: 2,
-      },
-      {
-        domain: 'exampple.com',
-        ipAddress: '8.8.8.8',
-        urlConstruction: 'suspicious',
-        category: 'malware',
-        logoDetected: false,
-        riskLevel: 5,
-      },
-    ];
-    setSimilarDomains(similarDomains);
+  const handleSearch = async () => {
+    try {
+        const response = await fetch('http://localhost:3001/api/domains?domain=' + encodeURI(domain));
+        const data = await response.json();
+        setSimilarDomains(data);
+      } catch (error) {
+        console.error('Error fetching domain data:', error);
+      }
   };
 
   return (
@@ -83,7 +80,9 @@ const DomainSearchPage = () => {
                 <TableCell>{item.urlConstruction}</TableCell>
                 <TableCell>{item.category}</TableCell>
                 <TableCell>{item.logoDetected ? 'Yes' : 'No'}</TableCell>
-                <TableCell>{item.riskLevel}</TableCell>
+                <TableCell><Box sx={getRiskLevelStyle(item.riskLevel)}>
+                  {item.riskLevel}
+                </Box></TableCell>
               </TableRow>
             ))}
           </TableBody>
