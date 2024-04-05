@@ -11,6 +11,7 @@ app.use(express.json());
 
 
 /* Middleware */
+
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
@@ -19,7 +20,6 @@ app.use((req, res, next) => {
 // Domain/URL validation middleware
 app.use((req, res, next) => {
   const domain = req.query.domain;
-  console.log(domain)
   if (!isValidURL(domain)) {
     return res.status(400).json({ error: 'Invalid domain' });
   }
@@ -28,13 +28,20 @@ app.use((req, res, next) => {
 
 
 /* Routes */
+
 app.get('/api/domains', (req, res) => {
 
   const rawDomain = req.query.domain;
 
-  if (!isValidURL(rawDomain)) {
-    res.json
+  let domain;
+
+  if (rawDomain.startsWith('http://') || rawDomain.startsWith('https://')) {
+    domain = new URL(rawDomain).host;
+  } else{
+    domain = new URL('http://' + rawDomain).host;
   }
+
+  console.log(`Request made for domain "${domain}"`);
 
   const domains = [
     {
