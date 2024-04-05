@@ -42,6 +42,10 @@ function DomainSearchPage() {
   const handleSearch = async () => {
     try {
         const response = await fetch('http://localhost:3001/api/domains?domain=' + encodeURI(domain));
+        if (!response.ok) {
+          alert(`Error: "${domain}" is not a valid domain / URL.`);
+          return;
+        }
         const data = await response.json();
         setSimilarDomains(data);
       } catch (error) {

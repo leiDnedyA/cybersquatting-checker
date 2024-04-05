@@ -1,14 +1,36 @@
 const express = require('express');
 const cors = require('cors');
 
+const { isValidURL} = require('./src/utils.js');
+
 const app = express();
 const port = 3001;
 
 app.use(cors());
 app.use(express.json());
 
+// Domain/URL validation middleware
+app.use((req, res, next) => {
+  const { domain } = req.query.domain;
+  if (!isValidURL(domain)) {
+    return res.status(400).json({ error: 'Invalid domain' });
+  }
+  next();
+});
+
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
 app.get('/api/domains', (req, res) => {
-  // Replace this with your actual domain similarity and maliciousness check logic
+
+  const rawDomain = req.query.domain;
+
+  if (!isValidURL(rawDomain)) {
+    res.json
+  }
+
   const domains = [
     {
       domain: req.query.domain,
