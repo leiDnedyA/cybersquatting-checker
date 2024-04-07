@@ -3,7 +3,7 @@ const cors = require('cors');
 
 const { isValidURL } = require('./src/utils.js');
 const { swapCommonTLDs, deleteDomainChars } = require('./src/generate_similar_domains.js');
-const { getURLResponseCode } = require('./src/squatting_checks.js');
+const { dnsLookup } = require('./src/squatting_checks.js');
 
 const app = express();
 const port = 3001;
@@ -85,8 +85,8 @@ app.get('/api/domains', async (req, res) => {
   }
 
   for (let record of allRecords) {
-    const response = async getURLResponseCode(`http://${record.domain}`);
-    if (response < 400 || response >= 500) {
+    const ip = await dnsLookup(record.domain);
+    if (ip !== null) {
       result.push(record);
     }
   }
