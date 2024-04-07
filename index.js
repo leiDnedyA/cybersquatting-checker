@@ -5,6 +5,7 @@ const path = require('path');
 const { isValidURL } = require('./src/utils.js');
 const { swapCommonTLDs, deleteDomainChars } = require('./src/generate_similar_domains.js');
 const { dnsLookup } = require('./src/squatting_checks.js');
+const { compareIcons } = require('./src/icon_check.js');
 
 const app = express();
 const port = 3001;
@@ -83,7 +84,7 @@ app.get('/api/domains', async (req, res) => {
       urlConstruction: 'Character deletion',
       category: 'unknown',
       logoDetected: false,
-      riskLevel: 5
+      riskLevel: 1
     });
   }
 
@@ -91,6 +92,13 @@ app.get('/api/domains', async (req, res) => {
     const ip = await dnsLookup(record.domain);
     if (ip !== null) {
       result.push(record);
+    }
+  }
+
+  for (let record of result) {
+    record.logoDetected = await compareIcons(domain, record.domain);
+    if (record.logoDetected) {
+      record.riskLevel = 5;
     }
   }
 

@@ -18,6 +18,13 @@ async function getFaviconURL(domain) {
   }
 }
 
+/**
+ * Compares the icons associated with two domains.
+ * 
+ * @param {string} domain1 - The first domain in the comparison.
+ * @param {string} domain2 - The second domain in the comparison.
+ * @returns {boolean} - true: The domains have the same icon, false: otherwise
+ */
 async function compareIcons(domain1, domain2) {
   try {
     const icon1URL = await getFaviconURL(domain1);
@@ -35,10 +42,12 @@ async function compareIcons(domain1, domain2) {
       maxOffset: 0
     });
 
-    rembrandt.compare().then(console.log)
+    const result = await rembrandt.compare();
+    return result.passed;
 
   } catch (err) {
     console.error(err);
+    return false;
   }
 }
 
