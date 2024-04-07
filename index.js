@@ -1,7 +1,11 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
-const { isValidURL} = require('./src/utils.js');
+const { isValidURL } = require('./src/utils.js');
+const { swapCommonTLDs, deleteDomainChars } = require('./src/generate_similar_domains.js');
+const { dnsLookup } = require('./src/squatting_checks.js');
+const { compareIcons } = require('./src/icon_check.js');
 
 const app = express();
 const port = 3001;
@@ -17,10 +21,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Domain/URL validation middleware
 app.use((req, res, next) => {
   const domain = req.query.domain;
-  if (!isValidURL(domain)) {
+  if (domain !== undefined && !isValidURL(domain)) {
     return res.status(400).json({ error: 'Invalid domain' });
   }
   next();
@@ -29,7 +32,9 @@ app.use((req, res, next) => {
 
 /* Routes */
 
-app.get('/api/domains', (req, res) => {
+app.use(express.static(path.join(__dirname, './frontend/dist/')));
+
+app.get('/api/domains', async (req, res) => {
 
   const rawDomain = req.query.domain;
 
@@ -43,42 +48,61 @@ app.get('/api/domains', (req, res) => {
 
   console.log(`Request made for domain "${domain}"`);
 
-  const domains = [
-    {
-      domain: req.query.domain,
-      ipAddress: '192.168.1.100',
-      urlConstruction: 'legitimate',
-      category: 'business',
-      logoDetected: true,
-      riskLevel: 1,
-    },
-    {
-      domain: 'exmple.com',
-      ipAddress: '10.0.0.1',
-      urlConstruction: 'suspicious',
+  // // Example:
+  // const domains = [
+  //   {
+  //     domain: req.query.domain,
+  //     ipAddress: '192.168.1.100',
+  //     urlConstruction: 'legitimate',
+  //     category: 'business',
+  //     logoDetected: true,
+  //     riskLevel: 1,
+  //   },
+  // ];
+
+  const result = []; // return value, only records with URLS that don't 404
+  const allRecords = []; // stores all records, even those that 404
+
+  const tldSwaps = swapCommonTLDs(domain);
+  const charDeletions = deleteDomainChars(domain);
+  
+  for (let tldSwap of tldSwaps) {
+    allRecords.push({
+      domain: tldSwap,
+      ipAddress: '',
+      urlConstruction: 'New TLD',
       category: 'unknown',
       logoDetected: false,
-      riskLevel: 4,
-    },
-    {
-      domain: 'examle.com',
-      ipAddress: '172.16.0.50',
-      urlConstruction: 'legitimate',
-      category: 'personal',
-      logoDetected: true,
-      riskLevel: 2,
-    },
-    {
-      domain: 'exampple.com',
-      ipAddress: '8.8.8.8',
-      urlConstruction: 'suspicious',
-      category: 'malware',
-      logoDetected: false,
-      riskLevel: 5,
-    },
-  ];
+      riskLevel: 5
+    });
+  }
 
-  res.json(domains);
+  for (let charDeletion of charDeletions) {
+    allRecords.push({
+      domain: charDeletion,
+      ipAddress: '',
+      urlConstruction: 'Character deletion',
+      category: 'unknown',
+      logoDetected: false,
+      riskLevel: 1
+    });
+  }
+
+  for (let record of allRecords) {
+    const ip = await dnsLookup(record.domain);
+    if (ip !== null) {
+      result.push(record);
+    }
+  }
+
+  for (let record of result) {
+    record.logoDetected = await compareIcons(domain, record.domain);
+    if (record.logoDetected) {
+      record.riskLevel = 5;
+    }
+  }
+
+  res.json(result);
 });
 
 app.listen(port, () => {
