@@ -43,7 +43,7 @@ function DomainSearchPage() {
     try {
         const response = await fetch('http://localhost:3001/api/domains?domain=' + encodeURI(domain));
         if (!response.ok) {
-          alert(`Error: "${domain}" is not a valid domain / URL.`);
+          alert(`Error: There was an error processing the domain "${domain}".`);
           return;
         }
         const data = await response.json();

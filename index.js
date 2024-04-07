@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 
-const { isValidURL} = require('./src/utils.js');
+const { isValidURL } = require('./src/utils.js');
+const { swapCommonTLDs } = require('./src/generate_similar_domains.js');
 
 const app = express();
 const port = 3001;
@@ -17,7 +18,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Domain/URL validation middleware
 app.use((req, res, next) => {
   const domain = req.query.domain;
   if (!isValidURL(domain)) {
@@ -43,42 +43,56 @@ app.get('/api/domains', (req, res) => {
 
   console.log(`Request made for domain "${domain}"`);
 
-  const domains = [
-    {
-      domain: req.query.domain,
-      ipAddress: '192.168.1.100',
-      urlConstruction: 'legitimate',
-      category: 'business',
-      logoDetected: true,
-      riskLevel: 1,
-    },
-    {
-      domain: 'exmple.com',
-      ipAddress: '10.0.0.1',
-      urlConstruction: 'suspicious',
+  // const domains = [
+  //   {
+  //     domain: req.query.domain,
+  //     ipAddress: '192.168.1.100',
+  //     urlConstruction: 'legitimate',
+  //     category: 'business',
+  //     logoDetected: true,
+  //     riskLevel: 1,
+  //   },
+  //   {
+  //     domain: 'exmple.com',
+  //     ipAddress: '10.0.0.1',
+  //     urlConstruction: 'suspicious',
+  //     category: 'unknown',
+  //     logoDetected: false,
+  //     riskLevel: 4,
+  //   },
+  //   {
+  //     domain: 'examle.com',
+  //     ipAddress: '172.16.0.50',
+  //     urlConstruction: 'legitimate',
+  //     category: 'personal',
+  //     logoDetected: true,
+  //     riskLevel: 2,
+  //   },
+  //   {
+  //     domain: 'exampple.com',
+  //     ipAddress: '8.8.8.8',
+  //     urlConstruction: 'suspicious',
+  //     category: 'malware',
+  //     logoDetected: false,
+  //     riskLevel: 5,
+  //   },
+  // ];
+  const result = [];
+
+  const tldSwaps = swapCommonTLDs(domain);
+  
+  for (let tldSwap of tldSwaps) {
+    result.push({
+      domain: tldSwap,
+      ipAddress: '',
+      urlConstruction: 'New TLD',
       category: 'unknown',
       logoDetected: false,
-      riskLevel: 4,
-    },
-    {
-      domain: 'examle.com',
-      ipAddress: '172.16.0.50',
-      urlConstruction: 'legitimate',
-      category: 'personal',
-      logoDetected: true,
-      riskLevel: 2,
-    },
-    {
-      domain: 'exampple.com',
-      ipAddress: '8.8.8.8',
-      urlConstruction: 'suspicious',
-      category: 'malware',
-      logoDetected: false,
-      riskLevel: 5,
-    },
-  ];
+      riskLevel: 5
+    });
+  }
 
-  res.json(domains);
+  res.json(result);
 });
 
 app.listen(port, () => {
