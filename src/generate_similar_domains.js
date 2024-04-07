@@ -13,7 +13,10 @@ const TLDS = [
   "cn",
   "ga",
   "cf",
-  "nl"
+  "nl",
+  "cm",
+  "om",
+  "co"
 ];
 
 /*

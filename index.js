@@ -3,6 +3,7 @@ const cors = require('cors');
 
 const { isValidURL } = require('./src/utils.js');
 const { swapCommonTLDs, deleteDomainChars } = require('./src/generate_similar_domains.js');
+const { getURLResponseCode } = require('./src/squatting_checks.js');
 
 const app = express();
 const port = 3001;
@@ -29,7 +30,7 @@ app.use((req, res, next) => {
 
 /* Routes */
 
-app.get('/api/domains', (req, res) => {
+app.get('/api/domains', async (req, res) => {
 
   const rawDomain = req.query.domain;
 
@@ -55,13 +56,14 @@ app.get('/api/domains', (req, res) => {
   //   },
   // ];
 
-  const result = [];
+  const result = []; // return value, only records with URLS that don't 404
+  const allRecords = []; // stores all records, even those that 404
 
   const tldSwaps = swapCommonTLDs(domain);
   const charDeletions = deleteDomainChars(domain);
   
   for (let tldSwap of tldSwaps) {
-    result.push({
+    allRecords.push({
       domain: tldSwap,
       ipAddress: '',
       urlConstruction: 'New TLD',
@@ -72,7 +74,7 @@ app.get('/api/domains', (req, res) => {
   }
 
   for (let charDeletion of charDeletions) {
-    result.push({
+    allRecords.push({
       domain: charDeletion,
       ipAddress: '',
       urlConstruction: 'Character deletion',
@@ -80,6 +82,13 @@ app.get('/api/domains', (req, res) => {
       logoDetected: false,
       riskLevel: 5
     });
+  }
+
+  for (let record of allRecords) {
+    const response = async getURLResponseCode(`http://${record.domain}`);
+    if (response < 400 || response >= 500) {
+      result.push(record);
+    }
   }
 
   res.json(result);
