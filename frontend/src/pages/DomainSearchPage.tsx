@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { Box, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress } from '@mui/material';
 
 type DomainInfo = {
   domain: string;
@@ -37,16 +37,21 @@ function getRiskLevelStyle(level: 1 | 2 | 3) : RiskStyle {
 
 function DomainSearchPage() {
   const [domain, setDomain] = useState('');
+  const [loading, setLoading] = useState(false);
   const [similarDomains, setSimilarDomains] = useState<DomainInfo[]>([]);
 
   const handleSearch = async () => {
+    setLoading(true);
+    setSimilarDomains([]);
     try {
         const response = await fetch('http://localhost:3001/api/domains?domain=' + encodeURI(domain));
         if (!response.ok) {
           alert(`Error: There was an error processing the domain "${domain}".`);
+          setLoading(false);
           return;
         }
         const data = await response.json();
+        setLoading(false);
         setSimilarDomains(data);
       } catch (error) {
         console.error('Error fetching domain data:', error);
@@ -92,6 +97,15 @@ function DomainSearchPage() {
           </TableBody>
         </Table>
       </TableContainer>
+      {
+        loading ?
+        (
+          <Box sx={{marginTop: '30px'}}>
+            <CircularProgress />
+          </Box>
+        ) :
+        undefined
+      }
     </Box>
   );
 };
