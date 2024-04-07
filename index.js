@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const { isValidURL } = require('./src/utils.js');
 const { swapCommonTLDs, deleteDomainChars } = require('./src/generate_similar_domains.js');
@@ -21,7 +22,7 @@ app.use((req, res, next) => {
 
 app.use((req, res, next) => {
   const domain = req.query.domain;
-  if (!isValidURL(domain)) {
+  if (domain !== undefined && !isValidURL(domain)) {
     return res.status(400).json({ error: 'Invalid domain' });
   }
   next();
@@ -29,6 +30,8 @@ app.use((req, res, next) => {
 
 
 /* Routes */
+
+app.use(express.static(path.join(__dirname, './frontend/dist/')));
 
 app.get('/api/domains', async (req, res) => {
 
