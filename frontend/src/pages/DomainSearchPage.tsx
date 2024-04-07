@@ -46,7 +46,7 @@ function DomainSearchPage() {
     setInitialized(true);
     setSimilarDomains([]);
     try {
-        const response = await fetch('http://localhost:3001/api/domains?domain=' + encodeURI(domain));
+        const response = await fetch('/api/domains?domain=' + encodeURI(domain));
         if (!response.ok) {
           alert(`Error: There was an error processing the domain "${domain}".`);
           setLoading(false);
