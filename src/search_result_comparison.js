@@ -23,6 +23,7 @@ function randomUserAgent() {
  * */
 async function getSearchResultDomains(query) {
   const userAgent = randomUserAgent();
+  console.log('user agent: ' + userAgent)
   const headers = {
     "User-Agent": userAgent
   }

@@ -117,7 +117,7 @@ app.get('/api/domains', async (req, res) => {
     if (record.logoDetected && record.detectedInSearch) {
       record.riskLevel = 5;
     } else if (record.logoDetected) {
-      record.riskLevel = 4;
+      record.riskLevel = 2;
     } else if (record.detectedInSearch) {
       record.riskLevel = 2;
     }

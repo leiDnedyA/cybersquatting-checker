@@ -7,6 +7,7 @@ type DomainInfo = {
   urlConstruction: string;
   category: string;
   logoDetected: boolean;
+  detectedInSearch: boolean;
   riskLevel: 1 | 2 | 3;
 };
 
@@ -78,7 +79,7 @@ function DomainSearchPage() {
               <TableCell>Domain</TableCell>
               <TableCell>IP Address</TableCell>
               <TableCell>URL Construction</TableCell>
-              <TableCell>Category</TableCell>
+              <TableCell>Detected in Search</TableCell>
               <TableCell>Logo Detected</TableCell>
               <TableCell>Risk Level</TableCell>
             </TableRow>
@@ -89,7 +90,7 @@ function DomainSearchPage() {
                 <TableCell>{item.domain}</TableCell>
                 <TableCell>{item.ipAddress}</TableCell>
                 <TableCell>{item.urlConstruction}</TableCell>
-                <TableCell>{item.category}</TableCell>
+                <TableCell>{item.detectedInSearch ? 'Yes' : 'No'}</TableCell>
                 <TableCell>{item.logoDetected ? 'Yes' : 'No'}</TableCell>
                 <TableCell><Box sx={getRiskLevelStyle(item.riskLevel)}>
                   {item.riskLevel}
