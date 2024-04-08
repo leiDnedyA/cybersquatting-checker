@@ -9,7 +9,7 @@ const { compareIcons } = require('./src/icon_check.js');
 const { getSearchResultDomains } = require('./src/search_result_comparison.js');
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
