@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { Box, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Typography } from '@mui/material';
 
 type DomainInfo = {
@@ -42,8 +42,14 @@ function DomainSearchPage() {
   const [initialized, setInitialized] = useState(false);
   const [similarDomains, setSimilarDomains] = useState<DomainInfo[]>([]);
 
+  const handleSearchSubmit =  (e: FormEvent) => {
+    e.preventDefault();
+    handleSearch();
+  }
+
   const handleSearch = async () => {
     if (!domain) {
+      // Stop user from sending requests if domain field is empty
       return;
     }
     setLoading(true);
@@ -66,12 +72,14 @@ function DomainSearchPage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 4 }}>
-      <TextField
-        label="Enter a web domain"
-        value={domain}
-        onChange={(e) => setDomain(e.target.value)}
-        sx={{ marginBottom: 2 }}
-      />
+      <form onSubmit={handleSearchSubmit}>
+        <TextField
+          label="Enter a web domain"
+          value={domain}
+          onChange={(e) => setDomain(e.target.value)}
+          sx={{ marginBottom: 2 }}
+        />
+      </form>
       <Button variant="contained" onClick={handleSearch}>
         Search
       </Button>
