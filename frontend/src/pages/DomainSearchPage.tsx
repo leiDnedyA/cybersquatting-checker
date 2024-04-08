@@ -43,6 +43,9 @@ function DomainSearchPage() {
   const [similarDomains, setSimilarDomains] = useState<DomainInfo[]>([]);
 
   const handleSearch = async () => {
+    if (!domain) {
+      return;
+    }
     setLoading(true);
     setInitialized(true);
     setSimilarDomains([]);
