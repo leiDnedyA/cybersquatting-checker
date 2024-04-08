@@ -22,17 +22,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => {
-  const domain = req.query.domain;
-  if (!domain) {
-    return res.status(400).json({ error: 'Missing query param "domain"' });
-  }
-  if (domain !== undefined && !isValidURL(domain)) {
-    return res.status(400).json({ error: 'Invalid domain' });
-  }
-  next();
-});
-
 
 /* Routes */
 
@@ -41,6 +30,13 @@ app.use(express.static(path.join(__dirname, './frontend/dist/')));
 app.get('/api/domains', async (req, res) => {
 
   const rawDomain = req.query.domain;
+
+  if (req.path.startsWith('/api/domains') && !rawDomain) {
+    return res.status(400).json({ error: 'Missing query param "domain"' });
+  }
+  if (!isValidURL(rawDomain)) {
+    return res.status(400).json({ error: 'Invalid domain' });
+  }
 
   let domain;
 
