@@ -6,6 +6,7 @@ const { isValidURL } = require('./src/utils.js');
 const { swapCommonTLDs, deleteDomainChars } = require('./src/generate_similar_domains.js');
 const { dnsLookup } = require('./src/squatting_checks.js');
 const { compareIcons } = require('./src/icon_check.js');
+const { getSearchResultDomains } = require('./src/search_result_comparison.js');
 
 const app = express();
 const port = 3001;
@@ -23,6 +24,9 @@ app.use((req, res, next) => {
 
 app.use((req, res, next) => {
   const domain = req.query.domain;
+  if (!domain) {
+    return res.status(400).json({ error: 'Missing query param "domain"' });
+  }
   if (domain !== undefined && !isValidURL(domain)) {
     return res.status(400).json({ error: 'Invalid domain' });
   }
@@ -73,7 +77,9 @@ app.get('/api/domains', async (req, res) => {
       urlConstruction: 'New TLD',
       category: 'unknown',
       logoDetected: false,
-      riskLevel: 5
+      detectedInSearch: false,
+      riskLevel: 1,
+      redirectToOriginal: false
     });
   }
 
@@ -84,21 +90,37 @@ app.get('/api/domains', async (req, res) => {
       urlConstruction: 'Character deletion',
       category: 'unknown',
       logoDetected: false,
-      riskLevel: 1
+      detectedInSearch: false,
+      riskLevel: 1,
+      redirectToOriginal: false
     });
   }
 
   for (let record of allRecords) {
     const ip = await dnsLookup(record.domain);
     if (ip !== null) {
+      record.ipAddress = ip;
       result.push(record);
     }
   }
 
+  // Check search engine for other associated with original domain
+  const fullDomainSearch = await getSearchResultDomains(domain);
+  const domainNameSearch = await getSearchResultDomains(domain.split('/')[0]);
+
+  console.log(domainNameSearch);
+
+
   for (let record of result) {
     record.logoDetected = await compareIcons(domain, record.domain);
-    if (record.logoDetected) {
+    record.detectedInSearch = fullDomainSearch.has(record.domain) || domainNameSearch.has(record.domain);
+    
+    if (record.logoDetected && record.detectedInSearch) {
       record.riskLevel = 5;
+    } else if (record.logoDetected) {
+      record.riskLevel = 2;
+    } else if (record.detectedInSearch) {
+      record.riskLevel = 2;
     }
   }
 

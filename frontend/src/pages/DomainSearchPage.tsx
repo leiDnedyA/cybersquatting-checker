@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { Box, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Typography } from '@mui/material';
 
 type DomainInfo = {
@@ -7,6 +7,7 @@ type DomainInfo = {
   urlConstruction: string;
   category: string;
   logoDetected: boolean;
+  detectedInSearch: boolean;
   riskLevel: 1 | 2 | 3;
 };
 
@@ -41,7 +42,16 @@ function DomainSearchPage() {
   const [initialized, setInitialized] = useState(false);
   const [similarDomains, setSimilarDomains] = useState<DomainInfo[]>([]);
 
+  const handleSearchSubmit =  (e: FormEvent) => {
+    e.preventDefault();
+    handleSearch();
+  }
+
   const handleSearch = async () => {
+    if (!domain) {
+      // Stop user from sending requests if domain field is empty
+      return;
+    }
     setLoading(true);
     setInitialized(true);
     setSimilarDomains([]);
@@ -62,12 +72,14 @@ function DomainSearchPage() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 4 }}>
-      <TextField
-        label="Enter a web domain"
-        value={domain}
-        onChange={(e) => setDomain(e.target.value)}
-        sx={{ marginBottom: 2 }}
-      />
+      <form onSubmit={handleSearchSubmit}>
+        <TextField
+          label="Enter a web domain"
+          value={domain}
+          onChange={(e) => setDomain(e.target.value)}
+          sx={{ marginBottom: 2 }}
+        />
+      </form>
       <Button variant="contained" onClick={handleSearch}>
         Search
       </Button>
@@ -78,7 +90,7 @@ function DomainSearchPage() {
               <TableCell>Domain</TableCell>
               <TableCell>IP Address</TableCell>
               <TableCell>URL Construction</TableCell>
-              <TableCell>Category</TableCell>
+              <TableCell>Detected in Search</TableCell>
               <TableCell>Logo Detected</TableCell>
               <TableCell>Risk Level</TableCell>
             </TableRow>
@@ -89,7 +101,7 @@ function DomainSearchPage() {
                 <TableCell>{item.domain}</TableCell>
                 <TableCell>{item.ipAddress}</TableCell>
                 <TableCell>{item.urlConstruction}</TableCell>
-                <TableCell>{item.category}</TableCell>
+                <TableCell>{item.detectedInSearch ? 'Yes' : 'No'}</TableCell>
                 <TableCell>{item.logoDetected ? 'Yes' : 'No'}</TableCell>
                 <TableCell><Box sx={getRiskLevelStyle(item.riskLevel)}>
                   {item.riskLevel}
