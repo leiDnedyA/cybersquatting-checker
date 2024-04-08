@@ -99,6 +99,7 @@ app.get('/api/domains', async (req, res) => {
   for (let record of allRecords) {
     const ip = await dnsLookup(record.domain);
     if (ip !== null) {
+      record.ipAddress = ip;
       result.push(record);
     }
   }
