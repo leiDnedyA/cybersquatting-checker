@@ -43,7 +43,13 @@ async function getSearchResultDomains(query) {
 
       try {
         if (url.startsWith('http')) {
-          return url.split('/')[2];
+          const rawDomain = url.split('/')[2]; // may contain prefix
+          const splitDomain = rawDomain.split('.');
+          if (splitDomain.length > 2) { // check if rawDomain contains a prefix
+            return splitDomain[1] + '.' + splitDomain[2];
+          } else {
+            return rawDomain;
+          }
         } else {
           return "";
         }

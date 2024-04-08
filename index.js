@@ -78,7 +78,8 @@ app.get('/api/domains', async (req, res) => {
       category: 'unknown',
       logoDetected: false,
       detectedInSearch: false,
-      riskLevel: 1
+      riskLevel: 1,
+      redirectToOriginal: false
     });
   }
 
@@ -90,7 +91,8 @@ app.get('/api/domains', async (req, res) => {
       category: 'unknown',
       logoDetected: false,
       detectedInSearch: false,
-      riskLevel: 1
+      riskLevel: 1,
+      redirectToOriginal: false
     });
   }
 
@@ -102,11 +104,15 @@ app.get('/api/domains', async (req, res) => {
   }
 
   // Check search engine for other associated with original domain
-  // const searchResultDomains = await getSearchResultDomains(domain);
+  const fullDomainSearch = await getSearchResultDomains(domain);
+  const domainNameSearch = await getSearchResultDomains(domain.split('/')[0]);
+
+  console.log(domainNameSearch);
+
 
   for (let record of result) {
     record.logoDetected = await compareIcons(domain, record.domain);
-    // record.detectedInSearch = getSearchResultDomains.has(record.domain);
+    record.detectedInSearch = fullDomainSearch.has(record.domain) || domainNameSearch.has(record.domain);
     
     if (record.logoDetected && record.detectedInSearch) {
       record.riskLevel = 5;
