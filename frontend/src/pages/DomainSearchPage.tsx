@@ -1,23 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { Box, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Typography } from '@mui/material';
-
-type DomainInfo = {
-  domain: string;
-  ipAddress: string;
-  urlConstruction: string;
-  category: string;
-  logoDetected: boolean;
-  detectedInSearch: boolean;
-  riskLevel: 1 | 2 | 3;
-};
-
-type RiskStyle = {
-  padding: string;
-  borderRadius: string;
-  display: string;
-  color?: string;
-  backgroundColor?: string;
-}
+import { RiskStyle, DomainInfo } from '../types/DomainInfo';
 
 function getRiskLevelStyle(level: 1 | 2 | 3) : RiskStyle {
   const result: RiskStyle = {
