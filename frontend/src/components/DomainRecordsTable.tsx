@@ -1,6 +1,28 @@
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { DomainInfo, RiskStyle } from '../types/DomainInfo';
 
-function DomainRecordsTable() {
+type props = {
+  domainRecords: DomainInfo[];
+}
+
+function getRiskLevelStyle(level: 1 | 2 | 3) : RiskStyle {
+  const result: RiskStyle = {
+    padding: '3px 10px',
+    borderRadius: '3px',
+    display: 'inline-block'
+  };
+  if (level === 1) {
+    result.color = 'text.secondary';
+  } else if (level === 2) {
+    result.backgroundColor = '#ffaa00';
+  } else {
+    result.backgroundColor = '#ff3333';
+    result.color = '#ffffff';
+  }
+  return result;
+}
+
+function DomainRecordsTable({domainRecords}: props) {
   return (
       <TableContainer component={Paper} sx={{ marginTop: 4 }}>
         <Table>
@@ -15,7 +37,7 @@ function DomainRecordsTable() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {similarDomains.map((item, index) => (
+            {domainRecords.map((item, index) => (
               <TableRow key={index}>
                 <TableCell>{item.domain}</TableCell>
                 <TableCell>{item.ipAddress}</TableCell>

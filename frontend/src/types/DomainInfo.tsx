@@ -16,4 +16,4 @@ type RiskStyle = {
   backgroundColor?: string;
 }
 
-export type { DomainInfo, RiskStyle }
+export type { DomainInfo, RiskStyle };
