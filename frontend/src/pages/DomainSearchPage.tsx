@@ -44,7 +44,11 @@ function DomainSearchPage() {
           label="Enter a web domain"
           value={domain}
           onChange={(e) => setDomain(e.target.value)}
-          sx={{ marginBottom: 2 }}
+          sx={{ marginBottom: 2, marginRight: "5px" }}
+        />
+        <TextField
+          label="Enter a list of keywords"
+          sx={{ marginBottom: 2, marginLeft: "5px" }}
         />
       </form>
       <Button variant="contained" onClick={handleSearch}>
