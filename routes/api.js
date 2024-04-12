@@ -27,8 +27,6 @@ router.get('/api/domains', async (req, res) => {
     domain = new URL('http://' + rawDomain).host;
   }
 
-  console.log(`Request made for domain "${domain}"`);
-
   /*
    * Example:
 
@@ -88,9 +86,6 @@ router.get('/api/domains', async (req, res) => {
   // Check search engine for other associated with original domain
   const fullDomainSearch = await getSearchResultDomains(domain);
   const domainNameSearch = await getSearchResultDomains(domain.split('/')[0]);
-
-  console.log(domainNameSearch);
-
 
   for (let record of result) {
     record.logoDetected = await compareIcons(domain, record.domain);
