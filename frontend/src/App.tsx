@@ -1,9 +1,11 @@
 import DomainSearchPage from './pages/DomainSearchPage'
 import LoginDialog from './components/LoginDialog'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Box, CircularProgress } from '@mui/material';
 
 async function checkIfAuthenticated() {
   const response = await fetch('/login/test_auth');
+  console.log(await response.text())
   if (response.ok) {
     return true;
   }
@@ -12,16 +14,38 @@ async function checkIfAuthenticated() {
 
 function App() {
   const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  console.log(document.cookie);
+  useEffect(() => {
+      checkIfAuthenticated().then(result => {
+        setAuthenticated(result);
+        setLoading(false);
+        })
+    });
 
   return (
     <>
-      <LoginDialog
-        open={ document.cookie.length === 0 }
-        onClose={() => {}}
-      />
-      <DomainSearchPage />
+
+      { loading?
+        <Box sx={{
+          display: 'flex',
+          width: '100%', 
+          flexDirection: 'column', 
+          alignItems: 'center',
+          paddingTop: '45vh'
+          }}>
+          <CircularProgress />
+        </Box>:
+        <>
+          {!authenticated ?
+          <LoginDialog
+            open={!authenticated}
+            onClose={() => {}}
+          /> :
+          null }
+          <DomainSearchPage />
+        </> }
+
     </>
   )
 }
