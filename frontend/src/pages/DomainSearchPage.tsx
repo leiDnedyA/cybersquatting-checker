@@ -41,13 +41,14 @@ function DomainSearchPage() {
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 4 }}>
       <form onSubmit={handleSearchSubmit}>
         <TextField
-          label="Enter a web domain"
+          required
+          label="Domain"
           value={domain}
           onChange={(e) => setDomain(e.target.value)}
           sx={{ marginBottom: 2, marginRight: "5px" }}
         />
         <TextField
-          label="Enter a list of keywords"
+          label="Search keywords"
           sx={{ marginBottom: 2, marginLeft: "5px" }}
         />
       </form>
