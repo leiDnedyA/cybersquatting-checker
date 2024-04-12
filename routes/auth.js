@@ -36,6 +36,16 @@ passport.deserializeUser(function(user, cb) {
   });
 });
 
+function checkAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+     return next() 
+  }
+  res.status(401).send("Unauthorized, please log in.");
+}
+
+router.get('/login/test_auth', checkAuthenticated, (req, res) => {
+  res.send('success');
+})
 
 router.get('/login', (req, res) => {
   res.send(`

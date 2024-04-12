@@ -15,17 +15,37 @@ interface LoginDialogProps {
 function LoginDialog ({ open, onClose }: LoginDialogProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isOpen, setIsOpen] = useState(open);
 
-  const handleLogin = () => {
-    // Your login logic here
-    console.log('Logging in with:', { username, password });
-    // You can add your authentication logic here
-    // For simplicity, let's just close the dialog
-    onClose();
-  };
+  const handleLogin = async () => {
+      try {
+        const response = await fetch('/login/password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            alert('Login failed. Please check your username and password.');
+          } else {
+            alert('An error occurred. Please try again later.');
+          }
+          throw new Error('Login failed');
+        }
+
+        setIsOpen(false);
+
+        onClose(); // Close the dialog if login is successful
+      } catch (error) {
+        console.error('Error logging in:', error);
+      }
+    };
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={isOpen} onClose={onClose}>
       <DialogTitle>Login</DialogTitle>
       <DialogContent>
         <TextField

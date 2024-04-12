@@ -10,6 +10,11 @@ export default defineConfig({
         target: "http://localhost:3001",
         changeOrigin: true,
         secure: false,
+      },
+      '/login': {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+        secure: false,
       }
     }
   }
