@@ -45,7 +45,7 @@ function checkAuthenticated(req, res, next) {
 
 router.get('/login/test_auth', checkAuthenticated, (req, res) => {
   res.send('success');
-})
+});
 
 router.get('/login', (req, res) => {
   res.send(`
@@ -60,8 +60,27 @@ router.get('/login', (req, res) => {
     `);
 });
 
-router.post('/login/password', passport.authenticate('local'), (req, res) => {
+router.post('/signup', passport.authenticate('local'), (req, res) => {
   res.json(req.user);
+});
+
+router.post('/signup', (req, res) => {
+  if (!req.body.username || !req.body.password) {
+    return res.status(400).send('Missing fields');
+  }
+  if (users.hasOwnProperty(req.body.username)) {
+    return res.status(401).send('Username already exists');
+  }
+  const user = {
+    id: username,
+    password: password,
+    secret: "new user"
+  };
+  users[username] = user;
+  req.login(user, err => {
+    if (err) {return next(err)};
+    res.status(200).send('Signup successful');
+  })
 });
 
 module.exports = router;
