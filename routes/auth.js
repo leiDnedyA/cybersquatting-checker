@@ -60,11 +60,11 @@ router.get('/login', (req, res) => {
     `);
 });
 
-router.post('/signup', passport.authenticate('local'), (req, res) => {
+router.post('/login/password', passport.authenticate('local'), (req, res) => {
   res.json(req.user);
 });
 
-router.post('/signup', (req, res) => {
+router.post('/login/signup', (req, res) => {
   if (!req.body.username || !req.body.password) {
     return res.status(400).send('Missing fields');
   }
@@ -72,11 +72,11 @@ router.post('/signup', (req, res) => {
     return res.status(401).send('Username already exists');
   }
   const user = {
-    id: username,
-    password: password,
+    id: req.body.username,
+    password: req.body.password,
     secret: "new user"
   };
-  users[username] = user;
+  users[req.body.username] = user;
   req.login(user, err => {
     if (err) {return next(err)};
     res.status(200).send('Signup successful');

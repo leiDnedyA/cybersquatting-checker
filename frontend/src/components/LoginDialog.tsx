@@ -49,7 +49,7 @@ function LoginDialog ({ open, onClose }: LoginDialogProps) {
 
   const handleSignup = async () => {
       try {
-        const response = await fetch('/login/password', {
+        const response = await fetch('/login/signup', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -58,12 +58,9 @@ function LoginDialog ({ open, onClose }: LoginDialogProps) {
         });
 
         if (!response.ok) {
-          if (response.status === 401) {
-            alert('Login failed. Please check your username and password.');
-          } else {
-            alert('An error occurred. Please try again later.');
-          }
-          throw new Error('Login failed');
+          const text = await response.text();
+          alert(text);
+          throw new Error(text);
         }
 
         setIsOpen(false);
@@ -127,7 +124,7 @@ function LoginDialog ({ open, onClose }: LoginDialogProps) {
             onChange={(e) => setPassword(e.target.value)}
           />
           <Button onClick={handleSignup} variant="contained" color="primary">
-            Login
+            Sign up
           </Button>
           <Typography>Already have an account? <Link onClick={() => {
             setIsSignup(false);
