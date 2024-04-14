@@ -1,4 +1,4 @@
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { Box, Table, TableBody, TableHead, TableRow, TableCell, TableContainer, Paper } from '@mui/material';
 import { DomainInfo, RiskStyle } from '../types/DomainInfo';
 
 type props = {

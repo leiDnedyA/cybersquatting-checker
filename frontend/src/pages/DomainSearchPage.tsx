@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
-import { Box, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Typography } from '@mui/material';
-import { RiskStyle, DomainInfo } from '../types/DomainInfo';
+import { Box, TextField, Button,CircularProgress, Typography } from '@mui/material';
+import { DomainInfo } from '../types/DomainInfo';
 import DomainRecordsTable from '../components/DomainRecordsTable';
 
 function DomainSearchPage() {
