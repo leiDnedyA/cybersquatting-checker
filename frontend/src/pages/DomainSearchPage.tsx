@@ -21,7 +21,8 @@ async function getUserRecords(): Promise<Report> {
 }
 
 function DomainSearchPage({authenticated}: Props) {
-  const [domain, setDomain] = useState('');
+  const [domains, setDomains] = useState<string[]>([]);
+  const [keywords, setKeywords] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [similarDomains, setSimilarDomains] = useState<DomainInfo[]>([]);
@@ -31,6 +32,11 @@ function DomainSearchPage({authenticated}: Props) {
     (async () => {
       const report = await getUserRecords();
       console.log(report);
+      if (report.domains.length > 0) {
+        setDomains(report.domains);
+      }
+      if (report.keywords.length > 0) {
+      }
      })();
   }, [authenticated]);
 
@@ -40,7 +46,9 @@ function DomainSearchPage({authenticated}: Props) {
   }
 
   const handleSearch = async () => {
-    if (!domain) {
+    console.log(domains)
+    console.log(keywords)
+    if (!domains) {
       // Stop user from sending requests if domain field is empty
       return;
     }
@@ -48,9 +56,9 @@ function DomainSearchPage({authenticated}: Props) {
     setInitialized(true);
     setSimilarDomains([]);
     try {
-        const response = await fetch('/api/domains?domain=' + encodeURI(domain));
+        const response = await fetch('/api/domains?domain=' + encodeURI(domains[0]));
         if (!response.ok) {
-          alert(`Error: There was an error processing the domain "${domain}".`);
+          alert(`Error: There was an error processing the domain "${domains[0]}".`);
           setLoading(false);
           return;
         }
@@ -68,12 +76,14 @@ function DomainSearchPage({authenticated}: Props) {
         <TextField
           required
           label="Domain"
-          value={domain}
-          onChange={(e) => setDomain(e.target.value)}
+          value={domains.join(', ')}
+          onChange={(e) => setDomains(e.target.value.split(', '))}
           sx={{ marginBottom: 2, marginRight: "5px" }}
         />
         <TextField
           label="Search keywords"
+          value={keywords.join(', ')}
+          onChange={(e) => setKeywords(e.target.value.split(', '))}
           sx={{ marginBottom: 2, marginLeft: "5px" }}
         />
       </form>
