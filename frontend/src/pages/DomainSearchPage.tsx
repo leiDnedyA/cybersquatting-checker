@@ -59,6 +59,10 @@ function DomainSearchPage({authenticated}: Props) {
         // const response = await fetch('/api/domains?domain=' + encodeURI(domains[0]));
         const response = await fetch('/api/domains', {
           method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({
             domains: domains,
             keywords: keywords
