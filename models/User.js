@@ -13,9 +13,8 @@ const UserSchema = new Schema({
     type: [String],
     default: []
   },
-  reports: {
-    type: [Schema.Types.ObjectId],
-    default: [],
+  report: {
+    type: Schema.Types.ObjectId,
     ref: 'report'
   }
 });

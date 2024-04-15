@@ -34,6 +34,8 @@ function DomainSearchPage({authenticated}: Props) {
       console.log(report);
       if (report.domains.length > 0) {
         setDomains(report.domains);
+        setKeywords(report.keywords);
+        setSimilarDomains(report.records);
       }
       if (report.keywords.length > 0) {
       }
@@ -74,6 +76,7 @@ function DomainSearchPage({authenticated}: Props) {
           return;
         }
         const data = await response.json();
+        console.log(data)
         setLoading(false);
         setSimilarDomains(data);
       } catch (error) {
@@ -86,7 +89,7 @@ function DomainSearchPage({authenticated}: Props) {
       <form onSubmit={handleSearchSubmit}>
         <TextField
           required
-          label="Domain"
+          label="Domains"
           value={domains.join(', ')}
           onChange={(e) => setDomains(e.target.value.split(', '))}
           sx={{ marginBottom: 2, marginRight: "5px" }}

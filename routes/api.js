@@ -8,8 +8,22 @@ const { compareIcons } = require('../src/icon_check.js');
 const { getSearchResultDomains } = require('../src/search_result_comparison.js');
 
 const UserModel = require('../models/User');
+const ReportModel = require('../models/Report.js');
+const ReportResultModel = require('../models/ReportResult.js');
 
 const router = express.Router();
+
+function arrayCompare(arr1, arr2) {
+  if (!(arr1.length === arr2.length)) {
+    return false;
+  }
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
 
 /*
  * Example:
@@ -27,8 +41,30 @@ const router = express.Router();
 
  * */
 router.post('/api/domains', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).send();
+  }
   // const rawDomain = req.query.domain;
   const domains = req.body.domains;
+  const keywords = req.body.keywords;
+
+  // check database to see if user already has records with these domains + keywords
+  const user = await UserModel.findOne({username: req.user.username});
+
+  if (user.report) {
+    const report = await ReportModel.findOne({ _id: user.report });
+    if (arrayCompare(domains, report.domains) && arrayCompare(keywords, report.keywords)) {
+      console.log(domains, report.domains);
+      const records = [];
+      for (let id of report.results) {
+        const result = await ReportResultModel.findOne({ _id: id });
+        if (result) {
+          records.push(result);
+        }
+      }
+      return res.json(records);
+    }
+  }
 
   
   if (!domains) {
@@ -36,7 +72,6 @@ router.post('/api/domains', async (req, res) => {
   }
 
   const rawDomain = domains[0];
-
 
   if (req.path.startsWith('/api/domains') && !rawDomain) {
     return res.status(400).json({ error: 'Missing query param "domain"' });
@@ -111,14 +146,53 @@ router.post('/api/domains', async (req, res) => {
   }
 
   res.json(result);
+
+  // update DB
+  const reportResultIds = [];
+  for (let record of result) {
+    const recordInstance = new ReportResultModel(record);
+    await recordInstance.save();
+    reportResultIds.push(recordInstance._id);
+  }
+
+  const report = new ReportModel({
+    domains: req.body.domains,
+    keywords: req.body.keywords,
+    results: reportResultIds
+  });
+  await report.save();
+
+  await UserModel.updateOne({username: req.user.username}, {
+    report: report._id
+  }).exec();
+
 });
 
-router.get('/api/user_records', (req, res) => {
+router.get('/api/user_records', async (req, res) => {
   // return res.status(404).send('No records for user.');
+  if (!req.user) {
+    return res.status(404).send('No user');
+  }
+  const userInstance = await UserModel.findOne({username: req.user.username});
+  if (!userInstance.report) {
+    return res.status(404).send('No report for user.');
+  }
+  const reportInstance = await ReportModel.findOne({_id: userInstance.report});
+  console.log(userInstance.report)
+  if (!reportInstance) {
+    return res.status(404).send('No report for user.');
+  }
+  const records = [];
+  for (let id of reportInstance.results) {
+    const record = await ReportResultModel.findOne({_id: id});
+    if (record) {
+      records.push(record);
+    }
+  }
   return res.json({
-    domains: ['google.net', 'google.com'],
-    keywords: ['your', 'mom'],
-    records: []
+    domains: reportInstance.domains,
+    keywords: reportInstance.keywords,
+    records: records
   })
 });
 

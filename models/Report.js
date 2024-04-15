@@ -3,12 +3,14 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const ReportSchema = new Schema({
-  domain: String,
-  ipAddress: String,
-  urlConstruction: String,
-  detectedInSearch: Boolean,
-  logoDetected: Boolean,
-  riskLevel: Number
+  domains: [String],
+  keywords: [String],
+  results: {
+    type: [Schema.Types.ObjectId],
+    ref: 'reportResult',
+    default: [],
+  },
+  isLoading: {type: Boolean, default: false}
 });
 
 const ReportModel = mongoose.model("report", ReportSchema);
