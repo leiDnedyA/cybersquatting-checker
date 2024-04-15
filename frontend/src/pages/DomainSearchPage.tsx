@@ -56,7 +56,14 @@ function DomainSearchPage({authenticated}: Props) {
     setInitialized(true);
     setSimilarDomains([]);
     try {
-        const response = await fetch('/api/domains?domain=' + encodeURI(domains[0]));
+        // const response = await fetch('/api/domains?domain=' + encodeURI(domains[0]));
+        const response = await fetch('/api/domains', {
+          method: 'POST',
+          body: JSON.stringify({
+            domains: domains,
+            keywords: keywords
+            })
+          });
         if (!response.ok) {
           alert(`Error: There was an error processing the domain "${domains[0]}".`);
           setLoading(false);

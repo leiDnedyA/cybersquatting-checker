@@ -26,8 +26,15 @@ const router = express.Router();
   ];
 
  * */
-router.get('/api/domains', async (req, res) => {
-  const rawDomain = req.query.domain;
+router.post('/api/domains', async (req, res) => {
+  // const rawDomain = req.query.domain;
+  const domains = req.body.domains;
+  
+  if (!domains) {
+    return res.status(400);
+  }
+
+  const rawDomain = domains[0];
 
   if (req.path.startsWith('/api/domains') && !rawDomain) {
     return res.status(400).json({ error: 'Missing query param "domain"' });
