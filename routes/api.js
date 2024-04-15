@@ -28,8 +28,11 @@ function arrayCompare(arr1, arr2) {
 // Deletes report and all associated results
 async function deleteReport(id) {
   const report = await ReportModel.findOne({_id: id});
-  for (let resultId in report.results) {
-    await ReportResultModel.deleteOne({_id: resultId});
+  console.log(report.results)
+  for (let resultId of report.results) {
+    if (await ReportResultModel.findOne({_id: resultId})) {
+      await ReportResultModel.deleteOne({_id: resultId});
+    }
   }
   await ReportModel.deleteOne({_id: id});
 }
@@ -63,7 +66,6 @@ router.post('/api/domains', async (req, res) => {
   if (user.report) {
     const report = await ReportModel.findOne({ _id: user.report });
     if (arrayCompare(domains, report.domains) && arrayCompare(keywords, report.keywords)) {
-      console.log(domains, report.domains);
       const records = [];
       for (let id of report.results) {
         const result = await ReportResultModel.findOne({ _id: id });
@@ -156,7 +158,9 @@ router.post('/api/domains', async (req, res) => {
 
   res.json(result);
 
-  await deleteReport(user.report) // delete user's previous report
+  if (user.report) {
+    await deleteReport(user.report) // delete user's previous report
+  }
   // update DB
   const reportResultIds = [];
   for (let record of result) {
@@ -188,7 +192,6 @@ router.get('/api/user_records', async (req, res) => {
     return res.status(404).send('No report for user.');
   }
   const reportInstance = await ReportModel.findOne({_id: userInstance.report});
-  console.log(userInstance.report)
   if (!reportInstance) {
     return res.status(404).send('No report for user.');
   }
