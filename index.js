@@ -34,19 +34,13 @@ app.use((req, res, next) => {
 
 app.use(passport.authenticate('session'));
 
-function checkAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-     return next() 
-  }
-  res.status(401).send("Unauthorized, please log in.");
-}
-
-
 /* Routes */
 
 app.use(express.static(path.join(__dirname, './frontend/dist/')));
 app.use('/', authRouter)
-app.use('/', checkAuthenticated, apiRouter);
+// app.use('/', checkAuthenticated, apiRouter);
+app.use('/', passport.authenticate('session'), apiRouter);
+// app.use('/', apiRouter);
 
 mongoose.connect(MONGODB_URI).then(() => {
   app.listen(PORT, () => {

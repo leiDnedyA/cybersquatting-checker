@@ -1,4 +1,7 @@
 const express = require('express');
+const mongoose = require('mongoose');
+
+const UserModel = require('../models/User');
 
 const { isValidURL } = require('../src/utils.js');
 const { swapCommonTLDs, deleteDomainChars } = require('../src/generate_similar_domains.js');
@@ -9,6 +12,7 @@ const { getSearchResultDomains } = require('../src/search_result_comparison.js')
 const router = express.Router();
 
 router.get('/api/domains', async (req, res) => {
+  console.log(req.session.passport.user)
   const rawDomain = req.query.domain;
 
   if (req.path.startsWith('/api/domains') && !rawDomain) {

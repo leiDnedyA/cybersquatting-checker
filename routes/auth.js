@@ -11,8 +11,6 @@ const router = express.Router();
 
 router.use(bodyParser.urlencoded())
 
-const users = {};
-
 async function hashPassword(password) {
     const saltRounds = 10;
     const salt = await bcrypt.genSalt(saltRounds);
@@ -39,7 +37,8 @@ passport.use(new LocalStrategy(async function verify(username, password, cb) {
 
 passport.serializeUser(function(user, cb) {
   process.nextTick(function() {
-    cb(null, { id: user.name, secret: user.secret });
+    const serializedUser = { username: user.username };
+    cb(null, serializedUser);
   });
 });
 
