@@ -13,7 +13,7 @@ const authRouter = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const MONGODB_URI = process.env.MONGODB_CONNECTION_URI || "mongodb://127.0.0.1:27017/tutorial";
+const MONGODB_URI = process.env.MONGODB_CONNECTION_URI || "mongodb://127.0.0.1:27017/cybersquatting-checker";
 
 app.use(cors());
 app.use(express.json());
