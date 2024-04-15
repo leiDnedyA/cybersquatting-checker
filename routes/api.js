@@ -11,6 +11,21 @@ const UserModel = require('../models/User');
 
 const router = express.Router();
 
+/*
+ * Example:
+
+  const domains = [
+    {
+      domain: req.query.domain,
+      ipAddress: '192.168.1.100',
+      urlConstruction: 'legitimate',
+      category: 'business',
+      logoDetected: true,
+      riskLevel: 1,
+    },
+  ];
+
+ * */
 router.get('/api/domains', async (req, res) => {
   const rawDomain = req.query.domain;
 
@@ -28,22 +43,6 @@ router.get('/api/domains', async (req, res) => {
   } else{
     domain = new URL('http://' + rawDomain).host;
   }
-
-  /*
-   * Example:
-
-    const domains = [
-      {
-        domain: req.query.domain,
-        ipAddress: '192.168.1.100',
-        urlConstruction: 'legitimate',
-        category: 'business',
-        logoDetected: true,
-        riskLevel: 1,
-      },
-    ];
-
-   * */
 
   const result = []; // return value, only records with URLS that don't 404
   const allRecords = []; // stores all records, even those that 404
@@ -104,19 +103,5 @@ router.get('/api/domains', async (req, res) => {
 
   res.json(result);
 });
-
-function sanitize(string) {
-  const map = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#x27;',
-      "/": '&#x2F;',
-  };
-  const reg = /[&<>"'/]/ig;
-  return string.replace(reg, (match)=>(map[match]));
-}
-
 
 module.exports = router;
