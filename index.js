@@ -3,14 +3,17 @@ const passport = require('passport');
 const session = require('express-session');
 const cors = require('cors');
 const path = require('path');
+const mongoose = require('mongoose');
 
 require('dotenv').config();
+mongoose.set("strictQuery", false);
 
 const apiRouter = require('./routes/api');
 const authRouter = require('./routes/auth');
 
 const app = express();
-const port = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3001;
+const MONGODB_URI = process.env.MONGODB_CONNECTION_URI || "mongodb://127.0.0.1:27017/tutorial";
 
 app.use(cors());
 app.use(express.json());
@@ -45,6 +48,8 @@ app.use(express.static(path.join(__dirname, './frontend/dist/')));
 app.use('/', authRouter)
 app.use('/', checkAuthenticated, apiRouter);
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+mongoose.connect(MONGODB_URI).then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+})

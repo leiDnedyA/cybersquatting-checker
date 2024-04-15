@@ -9,7 +9,6 @@ const { getSearchResultDomains } = require('../src/search_result_comparison.js')
 const router = express.Router();
 
 router.get('/api/domains', async (req, res) => {
-
   const rawDomain = req.query.domain;
 
   if (req.path.startsWith('/api/domains') && !rawDomain) {
@@ -102,5 +101,19 @@ router.get('/api/domains', async (req, res) => {
 
   res.json(result);
 });
+
+function sanitize(string) {
+  const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#x27;',
+      "/": '&#x2F;',
+  };
+  const reg = /[&<>"'/]/ig;
+  return string.replace(reg, (match)=>(map[match]));
+}
+
 
 module.exports = router;

@@ -3,14 +3,15 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+
+const UserModel = require('../models/User');
 
 const router = express.Router();
+
 router.use(bodyParser.urlencoded())
 
-const users = {
- // username : { password: "password", secret: "whatever" }
- "ayden": {id: "ayden", password: "pass", secret: "test"}
-}
+const users = {};
 
 async function hashPassword(password) {
     const saltRounds = 10;
@@ -25,18 +26,20 @@ async function comparePassword(plainPassword, hashedPassword) {
 }
 
 passport.use(new LocalStrategy(async function verify(username, password, cb) {
-  if(!users.hasOwnProperty(username)) {
+  const sanitizedUsername = sanitize(username);
+  const dbQuery = await UserModel.findOne({ username: sanitizedUsername }).exec();
+  if(dbQuery === null) {
     return cb(null, false, { message: 'Incorrect username or password' });
   }
-  if(await comparePassword(password, users[username].password))  {
-    return cb(null, users[username]);
+  if(await comparePassword(password, dbQuery.password))  {
+    return cb(null, dbQuery);
   }
   return cb(null, false, { message: 'Incorrect username or password' });
 }));
 
 passport.serializeUser(function(user, cb) {
   process.nextTick(function() {
-    cb(null, { id: user.id, secret: user.secret });
+    cb(null, { id: user.name, secret: user.secret });
   });
 });
 
@@ -46,7 +49,7 @@ passport.deserializeUser(function(user, cb) {
   });
 });
 
-function checkAuthenticated(req, res, next) {
+async function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
      return next() 
   }
@@ -78,19 +81,36 @@ router.post('/login/signup', async (req, res) => {
   if (!req.body.username || !req.body.password) {
     return res.status(400).send('Missing fields');
   }
-  if (users.hasOwnProperty(req.body.username)) {
+  const sanitizedUsername = sanitize(req.body.username);
+  const dbQuery = await UserModel.findOne({ username: sanitizedUsername }).exec();
+  if (dbQuery !== null) {
     return res.status(401).send('Username already exists');
   }
   const user = {
-    id: req.body.username,
+    username: sanitize(req.body.username),
     password: await hashPassword(req.body.password),
-    secret: "new user"
   };
-  users[req.body.username] = user;
+
+  const userInstance = new UserModel(user);
+  await userInstance.save();
+
   req.login(user, err => {
     if (err) {return next(err)};
     res.status(200).send('Signup successful');
   })
 });
+
+function sanitize(string) {
+  const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#x27;',
+      "/": '&#x2F;',
+  };
+  const reg = /[&<>"'/]/ig;
+  return string.replace(reg, (match)=>(map[match]));
+}
 
 module.exports = router;
