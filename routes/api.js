@@ -25,6 +25,15 @@ function arrayCompare(arr1, arr2) {
   return true;
 }
 
+// Deletes report and all associated results
+async function deleteReport(id) {
+  const report = await ReportModel.findOne({_id: id});
+  for (let resultId in report.results) {
+    await ReportResultModel.deleteOne({_id: resultId});
+  }
+  await ReportModel.deleteOne({_id: id});
+}
+
 /*
  * Example:
 
@@ -147,6 +156,7 @@ router.post('/api/domains', async (req, res) => {
 
   res.json(result);
 
+  await deleteReport(user.report) // delete user's previous report
   // update DB
   const reportResultIds = [];
   for (let record of result) {
