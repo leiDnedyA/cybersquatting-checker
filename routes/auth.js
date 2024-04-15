@@ -1,7 +1,7 @@
 const express = require('express');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
-const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 
 const router = express.Router();
@@ -12,11 +12,23 @@ const users = {
  "ayden": {id: "ayden", password: "pass", secret: "test"}
 }
 
-passport.use(new LocalStrategy(function verify(username, password, cb) {
+async function hashPassword(password) {
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hash = await bcrypt.hash(password, salt);
+    return hash;
+}
+
+async function comparePassword(plainPassword, hashedPassword) {
+    const match = await bcrypt.compare(plainPassword, hashedPassword);
+    return match;
+}
+
+passport.use(new LocalStrategy(async function verify(username, password, cb) {
   if(!users.hasOwnProperty(username)) {
     return cb(null, false, { message: 'Incorrect username or password' });
   }
-  if(users[username].password === password)  {
+  if(await comparePassword(password, users[username].password))  {
     return cb(null, users[username]);
   }
   return cb(null, false, { message: 'Incorrect username or password' });
@@ -24,14 +36,12 @@ passport.use(new LocalStrategy(function verify(username, password, cb) {
 
 passport.serializeUser(function(user, cb) {
   process.nextTick(function() {
-    console.log(user)
     cb(null, { id: user.id, secret: user.secret });
   });
 });
 
 passport.deserializeUser(function(user, cb) {
   process.nextTick(function() {
-    console.log(user)
     return cb(null, user);
   });
 });
@@ -64,7 +74,7 @@ router.post('/login/password', passport.authenticate('local'), (req, res) => {
   res.json(req.user);
 });
 
-router.post('/login/signup', (req, res) => {
+router.post('/login/signup', async (req, res) => {
   if (!req.body.username || !req.body.password) {
     return res.status(400).send('Missing fields');
   }
@@ -73,7 +83,7 @@ router.post('/login/signup', (req, res) => {
   }
   const user = {
     id: req.body.username,
-    password: req.body.password,
+    password: await hashPassword(req.body.password),
     secret: "new user"
   };
   users[req.body.username] = user;
