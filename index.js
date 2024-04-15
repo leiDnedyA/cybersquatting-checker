@@ -38,9 +38,7 @@ app.use(passport.authenticate('session'));
 
 app.use(express.static(path.join(__dirname, './frontend/dist/')));
 app.use('/', authRouter)
-// app.use('/', checkAuthenticated, apiRouter);
 app.use('/', passport.authenticate('session'), apiRouter);
-// app.use('/', apiRouter);
 
 mongoose.connect(MONGODB_URI).then(() => {
   app.listen(PORT, () => {

@@ -5,6 +5,8 @@ const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
+const sanitize = require('../src/sanitize');
+
 const UserModel = require('../models/User');
 
 const router = express.Router();
@@ -98,18 +100,5 @@ router.post('/login/signup', async (req, res) => {
     res.status(200).send('Signup successful');
   })
 });
-
-function sanitize(string) {
-  const map = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#x27;',
-      "/": '&#x2F;',
-  };
-  const reg = /[&<>"'/]/ig;
-  return string.replace(reg, (match)=>(map[match]));
-}
 
 module.exports = router;
