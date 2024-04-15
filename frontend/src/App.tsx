@@ -40,10 +40,12 @@ function App() {
           {!authenticated ?
           <LoginDialog
             open={!authenticated}
-            onClose={() => {}}
+            onClose={() => {
+              setAuthenticated(true);
+            }}
           /> :
           null }
-          <DomainSearchPage />
+          <DomainSearchPage authenticated={authenticated}/>
         </> }
 
     </>

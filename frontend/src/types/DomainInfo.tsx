@@ -8,6 +8,12 @@ type DomainInfo = {
   riskLevel: 1 | 2 | 3;
 };
 
+type Report = {
+  domains: string[];
+  keywords: string[];
+  records: DomainInfo[];
+}
+
 type RiskStyle = {
   padding: string;
   borderRadius: string;
@@ -16,4 +22,4 @@ type RiskStyle = {
   backgroundColor?: string;
 }
 
-export type { DomainInfo, RiskStyle };
+export type { DomainInfo, RiskStyle, Report };

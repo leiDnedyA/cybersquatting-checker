@@ -104,4 +104,13 @@ router.get('/api/domains', async (req, res) => {
   res.json(result);
 });
 
+router.get('/api/user_records', (req, res) => {
+  // return res.status(404).send('No records for user.');
+  return res.json({
+    domains: ['google.net', 'google.com'],
+    keywords: ['your', 'mom'],
+    records: []
+  })
+});
+
 module.exports = router;

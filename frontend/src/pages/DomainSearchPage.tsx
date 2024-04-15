@@ -1,13 +1,38 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Box, TextField, Button,CircularProgress, Typography } from '@mui/material';
-import { DomainInfo } from '../types/DomainInfo';
+import { DomainInfo, Report } from '../types/DomainInfo';
 import DomainRecordsTable from '../components/DomainRecordsTable';
 
-function DomainSearchPage() {
+type Props = {
+  authenticated: boolean;
+};
+
+async function getUserRecords(): Promise<Report> {
+  const result = await fetch('/api/user_records');
+  if (!result.ok) {
+    return {
+      domains: [],
+      keywords: [],
+      records: []
+    };
+  }
+  const resultJSON = await result.json();
+  return resultJSON;
+}
+
+function DomainSearchPage({authenticated}: Props) {
   const [domain, setDomain] = useState('');
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [similarDomains, setSimilarDomains] = useState<DomainInfo[]>([]);
+
+  useEffect(() => {
+    // hit endpoint and check if user already has domains + records to show
+    (async () => {
+      const report = await getUserRecords();
+      console.log(report);
+     })();
+  }, [authenticated]);
 
   const handleSearchSubmit =  (e: FormEvent) => {
     e.preventDefault();
