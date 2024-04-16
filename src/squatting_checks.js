@@ -25,9 +25,7 @@ async function dnsLookup(domain) {
   }
 }
 
-async function fullSquattingCheck(domains, keywords) {
-  const rawDomain = domains[0];
-
+async function checkSingleDomain(rawDomain) {
   let domain;
 
   if (rawDomain.startsWith('http://') || rawDomain.startsWith('https://')) {
@@ -92,8 +90,17 @@ async function fullSquattingCheck(domains, keywords) {
       record.riskLevel = 2;
     }
   }
-  
+
   return result;
+}
+
+async function fullSquattingCheck(domains, keywords) {
+  let results = [];
+  for (let domain of domains) {
+    const domainResult = await checkSingleDomain(domain);
+    results = results.concat(domainResult);
+  }
+  return results;
 }
 
 if (require.main === module) {
