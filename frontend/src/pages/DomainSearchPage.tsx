@@ -107,8 +107,9 @@ function DomainSearchPage({ authenticated }: Props) {
             onChange={(e) => setKeywords(e.target.value.split(', '))}
             sx={{ marginBottom: 2, marginLeft: "5px" }}
           />
-          <QuestionMarkTooltip text={'Enter comma-separated lists, e.g "google.com, google.net, ..."'}/>
+          <QuestionMarkTooltip text={'Enter comma-separated lists, e.g "google.com, google.net, ..."'} />
         </Box>
+        <button type="submit" style={{ display: 'none' }} onSubmit={handleSearchSubmit}></button>
       </form>
       <Button variant="contained" onClick={handleSearch}>
         Search
