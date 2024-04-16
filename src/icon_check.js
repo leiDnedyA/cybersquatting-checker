@@ -26,7 +26,11 @@ async function getFaviconURL(domain) {
  * @returns {boolean} - true: The domains have the same icon, false: otherwise
  */
 async function compareIcons(domain1, domain2) {
+  if (!domain1 || !domain2) {
+    return false;
+  }
   try {
+    console.log(domain1, domain2)
     const icon1URL = await getFaviconURL(domain1);
     const icon2URL = await getFaviconURL(domain2);
 

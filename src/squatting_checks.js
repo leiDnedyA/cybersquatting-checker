@@ -79,6 +79,7 @@ async function checkSingleDomain(rawDomain) {
   const domainNameSearch = await getSearchResultDomains(domain.split('/')[0]);
 
   for (let record of result) {
+    console.log(`Checking ${record.domain} icon and ${domain}`)
     record.logoDetected = await compareIcons(domain, record.domain);
     record.detectedInSearch = fullDomainSearch.has(record.domain) || domainNameSearch.has(record.domain);
 
@@ -94,11 +95,66 @@ async function checkSingleDomain(rawDomain) {
   return result;
 }
 
+async function checkKeyword(keyword, whitelistedDomains) {
+  const queryResults = await getSearchResultDomains(keyword);
+  for (let domain of whitelistedDomains) {
+    if (queryResults.has(domain)) {
+      queryResults.remove(domain);
+    }
+  }
+  const results = [];
+  for (let domain of queryResults) {
+    let logoDetected = false;
+    for (let whitelistedDomain of whitelistedDomains) {
+      if (compareIcons(whitelistedDomain, domain)) {
+        logoDetected = true;
+        break;
+      }
+    }
+    const result = {
+      domain: domain,
+      ipAddress: '',
+      urlConstruction: 'Found in search',
+      category: 'unknown',
+      logoDetected: logoDetected,
+      detectedInSearch: true,
+      riskLevel: 2,
+      redirectToOriginal: false
+    };
+    if (result.logoDetected) {
+      result.riskLevel = 5;
+    }
+    const ip = await dnsLookup(result.domain);
+    if (ip !== null) {
+      result.ipAddress = ip;
+      results.push(result);
+    }
+  }
+  return results;
+}
+
 async function fullSquattingCheck(domains, keywords) {
-  let results = [];
+  const results = [];
+  const seenDomains = new Set();
   for (let domain of domains) {
     const domainResult = await checkSingleDomain(domain);
-    results = results.concat(domainResult);
+    for (let result of domainResult) {
+      if (seenDomains.has(result.domain)) {
+        continue;
+      }
+      seenDomains.add(result.domain)
+      results.push(result);
+    }
+  }
+  for (let keyword of keywords) {
+    const keywordResults = await checkKeyword(keyword, domains);
+    for (let result of keywordResults) {
+      if (seenDomains.has(result.domain)) {
+        continue;
+      }
+      seenDomains.add(result.domain)
+      results.push(result);
+    }
   }
   return results;
 }
