@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Box, TextField, Button, CircularProgress, Typography } from '@mui/material';
 import { DomainInfo, Report } from '../types/DomainInfo';
 import DomainRecordsTable from '../components/DomainRecordsTable';
+import QuestionMarkTooltip from '../components/QuestionMarkTooltip';
 
 type Props = {
   authenticated: boolean;
@@ -89,19 +90,25 @@ function DomainSearchPage({ authenticated }: Props) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 4 }}>
       <form onSubmit={handleSearchSubmit}>
-        <TextField
-          required
-          label="Domains"
-          value={domains.join(', ')}
-          onChange={(e) => setDomains(e.target.value.split(', '))}
-          sx={{ marginBottom: 2, marginRight: "5px" }}
-        />
-        <TextField
-          label="Search keywords"
-          value={keywords.join(', ')}
-          onChange={(e) => setKeywords(e.target.value.split(', '))}
-          sx={{ marginBottom: 2, marginLeft: "5px" }}
-        />
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'baseline'
+        }}>
+          <TextField
+            required
+            label="Domains"
+            value={domains.join(', ')}
+            onChange={(e) => setDomains(e.target.value.split(', '))}
+            sx={{ marginBottom: 2, marginRight: "5px" }}
+          />
+          <TextField
+            label="Search keywords"
+            value={keywords.join(', ')}
+            onChange={(e) => setKeywords(e.target.value.split(', '))}
+            sx={{ marginBottom: 2, marginLeft: "5px" }}
+          />
+          <QuestionMarkTooltip text={'Enter comma-separated lists, e.g "google.com, google.net, ..."'}/>
+        </Box>
       </form>
       <Button variant="contained" onClick={handleSearch}>
         Search
