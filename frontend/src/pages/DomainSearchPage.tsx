@@ -55,6 +55,7 @@ function DomainSearchPage({ authenticated }: Props) {
       return;
     }
     setLoading(true);
+    const prevSimilarDomains = similarDomains;
     setInitialized(true);
     setSimilarDomains([]);
     try {
@@ -73,6 +74,7 @@ function DomainSearchPage({ authenticated }: Props) {
       if (!response.ok) {
         alert(`Error: There was an error processing the domain "${domains[0]}".`);
         setLoading(false);
+        setSimilarDomains(prevSimilarDomains);
         return;
       }
       const data = await response.json();

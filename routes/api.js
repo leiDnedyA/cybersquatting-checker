@@ -63,6 +63,15 @@ router.post('/api/domains', async (req, res) => {
   // check database to see if user already has records with these domains + keywords
   const user = await UserModel.findOne({username: req.user.username});
 
+  if (!domains) {
+    return res.status(400);
+  }
+  for (let domain of domains) {
+    if (!isValidURL(domain)) {
+      return res.status(400).json({ error: `Invalid domain "${domain}"`});
+    }
+  }
+
   if (user.report) {
     const report = await ReportModel.findOne({ _id: user.report });
     if (arrayCompare(domains, report.domains) && arrayCompare(keywords, report.keywords)) {
@@ -76,13 +85,8 @@ router.post('/api/domains', async (req, res) => {
       return res.json(records);
     }
   }
-
   
-  if (!domains) {
-    return res.status(400);
-  }
-
-  const result = await fullSquattingCheck([domains[0]], []);
+  const result = await fullSquattingCheck(domains, keywords);
 
   res.json(result);
 
