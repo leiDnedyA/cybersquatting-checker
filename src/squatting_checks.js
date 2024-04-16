@@ -99,7 +99,7 @@ async function checkKeyword(keyword, whitelistedDomains) {
   const queryResults = await getSearchResultDomains(keyword);
   for (let domain of whitelistedDomains) {
     if (queryResults.has(domain)) {
-      queryResults.remove(domain);
+      queryResults.delete(domain);
     }
   }
   const results = [];
