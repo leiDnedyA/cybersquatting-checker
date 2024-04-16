@@ -8,6 +8,8 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 mongoose.set("strictQuery", false);
 
+const { scheduleAllJobs } = require('./src/scheduling');
+
 const apiRouter = require('./routes/api');
 const authRouter = require('./routes/auth');
 
@@ -40,8 +42,11 @@ app.use(express.static(path.join(__dirname, './frontend/dist/')));
 app.use('/', authRouter)
 app.use('/', passport.authenticate('session'), apiRouter);
 
-mongoose.connect(MONGODB_URI).then(() => {
+mongoose.connect(MONGODB_URI).then(async () => {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
+  console.log('scheduling jobs...');
+  await scheduleAllJobs();
+
 })

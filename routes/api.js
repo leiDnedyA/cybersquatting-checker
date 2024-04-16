@@ -29,6 +29,9 @@ function arrayCompare(arr1, arr2) {
 async function deleteReport(id) {
   const report = await ReportModel.findOne({_id: id});
   console.log(report.results)
+  if (!report) {
+    return;
+  }
   for (let resultId of report.results) {
     if (await ReportResultModel.findOne({_id: resultId})) {
       await ReportResultModel.deleteOne({_id: resultId});
@@ -37,21 +40,6 @@ async function deleteReport(id) {
   await ReportModel.deleteOne({_id: id});
 }
 
-/*
- * Example:
-
-  const domains = [
-    {
-      domain: req.query.domain,
-      ipAddress: '192.168.1.100',
-      urlConstruction: 'legitimate',
-      category: 'business',
-      logoDetected: true,
-      riskLevel: 1,
-    },
-  ];
-
- * */
 router.post('/api/domains', async (req, res) => {
   if (!req.user) {
     return res.status(401).send();
@@ -109,7 +97,9 @@ router.post('/api/domains', async (req, res) => {
   await report.save();
 
   await UserModel.updateOne({username: req.user.username}, {
-    report: report._id
+    report: report._id,
+    domains: domains,
+    keywords: keywords
   }).exec();
 
 });
