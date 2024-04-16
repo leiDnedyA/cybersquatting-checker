@@ -78,7 +78,10 @@ function LoginDialog({ open, onClose }: LoginDialogProps) {
           <>
             <DialogTitle>Login</DialogTitle>
             <DialogContent>
-              <form>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                handleLogin();
+              }}>
                 <TextField
                   autoFocus
                   margin="dense"
@@ -96,7 +99,7 @@ function LoginDialog({ open, onClose }: LoginDialogProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
-                <Button onClick={handleLogin} variant="contained" color="primary">
+                <Button type="submit" onClick={handleLogin} variant="contained" color="primary">
                   Login
                 </Button>
               </form>
@@ -108,26 +111,32 @@ function LoginDialog({ open, onClose }: LoginDialogProps) {
           <>
             <DialogTitle>Sign Up</DialogTitle>
             <DialogContent>
-              <TextField
-                autoFocus
-                margin="dense"
-                label="Username"
-                type="text"
-                fullWidth
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-              <TextField
-                margin="dense"
-                label="Password"
-                type="password"
-                fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <Button onClick={handleSignup} variant="contained" color="primary">
-                Sign up
-              </Button>
+              <form onSubmit={(e) => {
+                console.log(':)')
+                e.preventDefault();
+                handleSignup();
+              }}>
+                <TextField
+                  autoFocus
+                  margin="dense"
+                  label="Username"
+                  type="text"
+                  fullWidth
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+                <TextField
+                  margin="dense"
+                  label="Password"
+                  type="password"
+                  fullWidth
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <Button type="submit" onClick={handleSignup} variant="contained" color="primary">
+                  Sign up
+                </Button>
+              </form>
               <Typography>Already have an account? <Link onClick={() => {
                 setIsSignup(false);
               }}>Login</Link></Typography>
