@@ -1,131 +1,135 @@
-import { FormEvent, useState } from 'react';
-import { Box, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Typography } from '@mui/material';
+import { FormEvent, useEffect, useState } from 'react';
+import { Box, TextField, Button, CircularProgress, Typography } from '@mui/material';
+import { DomainInfo, Report } from '../types/DomainInfo';
+import DomainRecordsTable from '../components/DomainRecordsTable';
+import QuestionMarkTooltip from '../components/QuestionMarkTooltip';
 
-type DomainInfo = {
-  domain: string;
-  ipAddress: string;
-  urlConstruction: string;
-  category: string;
-  logoDetected: boolean;
-  detectedInSearch: boolean;
-  riskLevel: 1 | 2 | 3;
+type Props = {
+  authenticated: boolean;
 };
 
-type RiskStyle = {
-  padding: string;
-  borderRadius: string;
-  display: string;
-  color?: string;
-  backgroundColor?: string;
-}
-
-function getRiskLevelStyle(level: 1 | 2 | 3) : RiskStyle {
-  const result: RiskStyle = {
-    padding: '3px 10px',
-    borderRadius: '3px',
-    display: 'inline-block'
-  };
-  if (level === 1) {
-    result.color = 'text.secondary';
-  } else if (level === 2) {
-    result.backgroundColor = '#ffaa00';
-  } else {
-    result.backgroundColor = '#ff3333';
-    result.color = '#ffffff';
+async function getUserRecords(): Promise<Report> {
+  const result = await fetch('/api/user_records');
+  if (!result.ok) {
+    return {
+      domains: [],
+      keywords: [],
+      records: []
+    };
   }
-  return result;
+  const resultJSON = await result.json();
+  return resultJSON;
 }
 
-function DomainSearchPage() {
-  const [domain, setDomain] = useState('');
+function DomainSearchPage({ authenticated }: Props) {
+  const [domains, setDomains] = useState<string[]>([]);
+  const [keywords, setKeywords] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [similarDomains, setSimilarDomains] = useState<DomainInfo[]>([]);
 
-  const handleSearchSubmit =  (e: FormEvent) => {
+  useEffect(() => {
+    // hit endpoint and check if user already has domains + records to show
+    (async () => {
+      const report = await getUserRecords();
+      console.log(report);
+      if (report.domains.length > 0) {
+        setDomains(report.domains);
+        setKeywords(report.keywords);
+        setSimilarDomains(report.records);
+      }
+      if (report.keywords.length > 0) {
+      }
+    })();
+  }, [authenticated]);
+
+  const handleSearchSubmit = (e: FormEvent) => {
     e.preventDefault();
     handleSearch();
   }
 
   const handleSearch = async () => {
-    if (!domain) {
+    console.log(domains)
+    console.log(keywords)
+    if (!domains) {
       // Stop user from sending requests if domain field is empty
       return;
     }
     setLoading(true);
+    const prevSimilarDomains = similarDomains;
     setInitialized(true);
     setSimilarDomains([]);
     try {
-        const response = await fetch('/api/domains?domain=' + encodeURI(domain));
-        if (!response.ok) {
-          alert(`Error: There was an error processing the domain "${domain}".`);
-          setLoading(false);
-          return;
-        }
-        const data = await response.json();
+      // const response = await fetch('/api/domains?domain=' + encodeURI(domains[0]));
+      const response = await fetch('/api/domains', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          domains: domains,
+          keywords: keywords
+        })
+      });
+      if (!response.ok) {
+        alert(`Error: There was an error processing the domain "${domains[0]}".`);
         setLoading(false);
-        setSimilarDomains(data);
-      } catch (error) {
-        console.error('Error fetching domain data:', error);
+        setSimilarDomains(prevSimilarDomains);
+        return;
       }
+      const data = await response.json();
+      console.log(data)
+      setLoading(false);
+      setSimilarDomains(data);
+    } catch (error) {
+      console.error('Error fetching domain data:', error);
+    }
   };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 4 }}>
       <form onSubmit={handleSearchSubmit}>
-        <TextField
-          label="Enter a web domain"
-          value={domain}
-          onChange={(e) => setDomain(e.target.value)}
-          sx={{ marginBottom: 2 }}
-        />
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'baseline'
+        }}>
+          <TextField
+            required
+            label="Domains"
+            value={domains.join(', ')}
+            onChange={(e) => setDomains(e.target.value.split(', '))}
+            sx={{ marginBottom: 2, marginRight: "5px" }}
+          />
+          <TextField
+            label="Search keywords"
+            value={keywords.join(', ')}
+            onChange={(e) => setKeywords(e.target.value.split(', '))}
+            sx={{ marginBottom: 2, marginLeft: "5px" }}
+          />
+          <QuestionMarkTooltip text={'Enter comma-separated lists, e.g "google.com, google.net, ..."'} />
+        </Box>
+        <button type="submit" style={{ display: 'none' }} onSubmit={handleSearchSubmit}></button>
       </form>
       <Button variant="contained" onClick={handleSearch}>
         Search
       </Button>
-      <TableContainer component={Paper} sx={{ marginTop: 4 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Domain</TableCell>
-              <TableCell>IP Address</TableCell>
-              <TableCell>URL Construction</TableCell>
-              <TableCell>Detected in Search</TableCell>
-              <TableCell>Logo Detected</TableCell>
-              <TableCell>Risk Level</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {similarDomains.map((item, index) => (
-              <TableRow key={index}>
-                <TableCell>{item.domain}</TableCell>
-                <TableCell>{item.ipAddress}</TableCell>
-                <TableCell>{item.urlConstruction}</TableCell>
-                <TableCell>{item.detectedInSearch ? 'Yes' : 'No'}</TableCell>
-                <TableCell>{item.logoDetected ? 'Yes' : 'No'}</TableCell>
-                <TableCell><Box sx={getRiskLevelStyle(item.riskLevel)}>
-                  {item.riskLevel}
-                </Box></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <DomainRecordsTable domainRecords={similarDomains} />
       {
         loading ?
-        (
-          <Box sx={{marginTop: '30px'}}>
-            <CircularProgress />
-          </Box>
-        ) :
-        undefined
+          (
+            <Box sx={{ marginTop: '30px' }}>
+              <CircularProgress />
+            </Box>
+          ) :
+          undefined
       }
       {
         (!loading && similarDomains.length === 0 && initialized) ?
-        <Box sx={{marginTop: '25px'}}>
-          <Typography>No similar domains detected.</Typography>
-        </Box> :
-        undefined
+          <Box sx={{ marginTop: '25px' }}>
+            <Typography>No similar domains detected.</Typography>
+          </Box> :
+          undefined
       }
     </Box>
   );

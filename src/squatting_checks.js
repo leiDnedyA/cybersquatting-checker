@@ -1,66 +1,9 @@
 const dns = require('dns');
 require('dotenv').config();
 
-// /**
-//  * @typedef {Object} WHOISRecord
-//  * @property {number} x - The X Coordinate
-//  * @property {number} y - The Y Coordinate
-//  */
-//
-// /*
-//  * Performs a WHOIS lookup on the given domain. Returns an object 
-//  * with information about the domain if it exists, or undefined if it doesn't.
-//  * -  Node: use this SPARINGLY, as API calls can get pricey.
-//  *
-//  * @param {string} domain - The domain to be looked up
-//  * @returns {WHOISRecord | undefined} - Relevant data from the record returned by the lookup
-//  * */
-// async function whoisLookup(domain) {
-//   if (process.env.X_RAPIDAPI_KEY === undefined) {
-//     throw new Error('Environment variable "X_RAPIDAPI_KEY" must be declared with valid X-RapidAPI key to run this function.');
-//   }
-//   if (process.env.WHOIS_API_KEY === undefined) {
-//     throw new Error('Environment variable "WHOIS_API_KEY" must be declared with valid WHOIS XML API key to run this function.');
-//   }
-//   const options = {
-//     method: 'GET',
-//     url: 'https://whoisapi-dns-lookup-v1.p.rapidapi.com/whoisserver/DNSService',
-//     params: {
-//       domainname: domain,
-//       type: 'A',
-//       apiKey: process.env.WHOIS_API_KEY,
-//       outputFormat: 'JSON'
-//     },
-//     headers: {
-//       'X-RapidAPI-Key': process.env.X_RAPIDAPI_KEY,
-//       'X-RapidAPI-Host': 'whoisapi-dns-lookup-v1.p.rapidapi.com'
-//     }
-//   };
-//
-//   try {
-//     const response = await axios.request(options);
-//     console.log(response.data);
-//
-//     if (response.data.hasOwnProperty('dataError')) {
-//       return undefined;
-//     }
-//
-//     const result = {};
-//
-//     if (response.data.hasOwnProperty('registrant')) {
-//       if (response.data.registrant.hasOwnProperty('organization')) {
-//         result.name = response.data.registrant.organization;
-//       } else if (response.data.registrant.hasOwnProperty('name')) {
-//         result.name = response.data.registrant.name;
-//       }
-//     }
-//
-//     return result;
-//
-//   } catch (error) {
-//     console.error(error);
-//   }
-// }
+const { swapCommonTLDs, deleteDomainChars } = require('./generate_similar_domains');
+const { getSearchResultDomains } = require('./search_result_comparison');
+const { compareIcons } = require('./icon_check');
 
 async function getURLResponseCode(url) {
   const response = await fetch(url);
@@ -82,4 +25,145 @@ async function dnsLookup(domain) {
   }
 }
 
-module.exports = { getURLResponseCode, dnsLookup };
+async function checkSingleDomain(rawDomain) {
+  let domain;
+
+  if (rawDomain.startsWith('http://') || rawDomain.startsWith('https://')) {
+    domain = new URL(rawDomain).host;
+  } else {
+    domain = new URL('http://' + rawDomain).host;
+  }
+
+  const result = []; // return value, only records with URLS that don't 404
+  const allRecords = []; // stores all records, even those that 404
+
+  const tldSwaps = swapCommonTLDs(domain);
+  const charDeletions = deleteDomainChars(domain);
+
+  for (let tldSwap of tldSwaps) {
+    allRecords.push({
+      domain: tldSwap,
+      ipAddress: '',
+      urlConstruction: 'New TLD',
+      category: 'unknown',
+      logoDetected: false,
+      detectedInSearch: false,
+      riskLevel: 1,
+      redirectToOriginal: false
+    });
+  }
+
+  for (let charDeletion of charDeletions) {
+    allRecords.push({
+      domain: charDeletion,
+      ipAddress: '',
+      urlConstruction: 'Character deletion',
+      category: 'unknown',
+      logoDetected: false,
+      detectedInSearch: false,
+      riskLevel: 1,
+      redirectToOriginal: false
+    });
+  }
+
+  for (let record of allRecords) {
+    const ip = await dnsLookup(record.domain);
+    if (ip !== null) {
+      record.ipAddress = ip;
+      result.push(record);
+    }
+  }
+
+  // Check search engine for other associated with original domain
+  const fullDomainSearch = await getSearchResultDomains(domain);
+  const domainNameSearch = await getSearchResultDomains(domain.split('/')[0]);
+
+  for (let record of result) {
+    console.log(`Checking ${record.domain} icon and ${domain}`)
+    record.logoDetected = await compareIcons(domain, record.domain);
+    record.detectedInSearch = fullDomainSearch.has(record.domain) || domainNameSearch.has(record.domain);
+
+    if (record.logoDetected && record.detectedInSearch) {
+      record.riskLevel = 5;
+    } else if (record.logoDetected) {
+      record.riskLevel = 2;
+    } else if (record.detectedInSearch) {
+      record.riskLevel = 2;
+    }
+  }
+
+  return result;
+}
+
+async function checkKeyword(keyword, whitelistedDomains) {
+  const queryResults = await getSearchResultDomains(keyword);
+  for (let domain of whitelistedDomains) {
+    if (queryResults.has(domain)) {
+      queryResults.remove(domain);
+    }
+  }
+  const results = [];
+  for (let domain of queryResults) {
+    let logoDetected = false;
+    for (let whitelistedDomain of whitelistedDomains) {
+      if (compareIcons(whitelistedDomain, domain)) {
+        logoDetected = true;
+        break;
+      }
+    }
+    const result = {
+      domain: domain,
+      ipAddress: '',
+      urlConstruction: 'Found in search',
+      category: 'unknown',
+      logoDetected: logoDetected,
+      detectedInSearch: true,
+      riskLevel: 2,
+      redirectToOriginal: false
+    };
+    if (result.logoDetected) {
+      result.riskLevel = 5;
+    }
+    const ip = await dnsLookup(result.domain);
+    if (ip !== null) {
+      result.ipAddress = ip;
+      results.push(result);
+    }
+  }
+  return results;
+}
+
+async function fullSquattingCheck(domains, keywords) {
+  const results = [];
+  const seenDomains = new Set();
+  for (let domain of domains) {
+    const domainResult = await checkSingleDomain(domain);
+    for (let result of domainResult) {
+      if (seenDomains.has(result.domain)) {
+        continue;
+      }
+      seenDomains.add(result.domain)
+      results.push(result);
+    }
+  }
+  for (let keyword of keywords) {
+    const keywordResults = await checkKeyword(keyword, domains);
+    for (let result of keywordResults) {
+      if (seenDomains.has(result.domain)) {
+        continue;
+      }
+      seenDomains.add(result.domain)
+      results.push(result);
+    }
+  }
+  return results;
+}
+
+if (require.main === module) {
+  (async () => {
+    const results = await fullSquattingCheck(['google.net'], ['google']);
+    console.log(results);
+  })();
+}
+
+module.exports = { getURLResponseCode, dnsLookup, fullSquattingCheck };
