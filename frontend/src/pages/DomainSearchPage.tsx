@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { Box, TextField, Button,CircularProgress, Typography } from '@mui/material';
+import { Box, TextField, Button, CircularProgress, Typography } from '@mui/material';
 import { DomainInfo, Report } from '../types/DomainInfo';
 import DomainRecordsTable from '../components/DomainRecordsTable';
 
@@ -20,7 +20,7 @@ async function getUserRecords(): Promise<Report> {
   return resultJSON;
 }
 
-function DomainSearchPage({authenticated}: Props) {
+function DomainSearchPage({ authenticated }: Props) {
   const [domains, setDomains] = useState<string[]>([]);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -39,10 +39,10 @@ function DomainSearchPage({authenticated}: Props) {
       }
       if (report.keywords.length > 0) {
       }
-     })();
+    })();
   }, [authenticated]);
 
-  const handleSearchSubmit =  (e: FormEvent) => {
+  const handleSearchSubmit = (e: FormEvent) => {
     e.preventDefault();
     handleSearch();
   }
@@ -58,30 +58,30 @@ function DomainSearchPage({authenticated}: Props) {
     setInitialized(true);
     setSimilarDomains([]);
     try {
-        // const response = await fetch('/api/domains?domain=' + encodeURI(domains[0]));
-        const response = await fetch('/api/domains', {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            domains: domains,
-            keywords: keywords
-            })
-          });
-        if (!response.ok) {
-          alert(`Error: There was an error processing the domain "${domains[0]}".`);
-          setLoading(false);
-          return;
-        }
-        const data = await response.json();
-        console.log(data)
+      // const response = await fetch('/api/domains?domain=' + encodeURI(domains[0]));
+      const response = await fetch('/api/domains', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          domains: domains,
+          keywords: keywords
+        })
+      });
+      if (!response.ok) {
+        alert(`Error: There was an error processing the domain "${domains[0]}".`);
         setLoading(false);
-        setSimilarDomains(data);
-      } catch (error) {
-        console.error('Error fetching domain data:', error);
+        return;
       }
+      const data = await response.json();
+      console.log(data)
+      setLoading(false);
+      setSimilarDomains(data);
+    } catch (error) {
+      console.error('Error fetching domain data:', error);
+    }
   };
 
   return (
@@ -104,22 +104,22 @@ function DomainSearchPage({authenticated}: Props) {
       <Button variant="contained" onClick={handleSearch}>
         Search
       </Button>
-      <DomainRecordsTable domainRecords={similarDomains}/>
+      <DomainRecordsTable domainRecords={similarDomains} />
       {
         loading ?
-        (
-          <Box sx={{marginTop: '30px'}}>
-            <CircularProgress />
-          </Box>
-        ) :
-        undefined
+          (
+            <Box sx={{ marginTop: '30px' }}>
+              <CircularProgress />
+            </Box>
+          ) :
+          undefined
       }
       {
         (!loading && similarDomains.length === 0 && initialized) ?
-        <Box sx={{marginTop: '25px'}}>
-          <Typography>No similar domains detected.</Typography>
-        </Box> :
-        undefined
+          <Box sx={{ marginTop: '25px' }}>
+            <Typography>No similar domains detected.</Typography>
+          </Box> :
+          undefined
       }
     </Box>
   );
