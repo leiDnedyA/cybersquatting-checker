@@ -103,4 +103,4 @@ if (require.main === module) {
   })();
 }
 
-module.exports = { getURLResponseCode, dnsLookup };
+module.exports = { getURLResponseCode, dnsLookup, fullSquattingCheck };
