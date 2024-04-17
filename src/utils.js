@@ -15,6 +15,9 @@ function parseDomain(rawDomain) {
   } else {
     domain = new URL('http://' + rawDomain).host;
   }
+  if (domain.split('.').length == 3) { // in case host contains prefix like www.
+    domain = domain.split('.').slice(1).join('.');
+  }
   return domain;
 }
 
