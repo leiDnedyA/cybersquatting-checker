@@ -8,4 +8,14 @@ function isValidURL(url) {
   return urlPattern.test(url);
 }
 
-module.exports = { isValidURL };
+function parseDomain(rawDomain) {
+  let domain;
+  if (rawDomain.startsWith('http://') || rawDomain.startsWith('https://')) {
+    domain = new URL(rawDomain).host;
+  } else {
+    domain = new URL('http://' + rawDomain).host;
+  }
+  return domain;
+}
+
+module.exports = { isValidURL, parseDomain };

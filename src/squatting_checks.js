@@ -4,6 +4,7 @@ require('dotenv').config();
 const { swapCommonTLDs, deleteDomainChars } = require('./generate_similar_domains');
 const { getSearchResultDomains } = require('./search_result_comparison');
 const { compareIcons } = require('./icon_check');
+const { parseDomain } = require('./utils');
 
 async function getURLResponseCode(url) {
   const response = await fetch(url);
@@ -26,13 +27,7 @@ async function dnsLookup(domain) {
 }
 
 async function checkSingleDomain(rawDomain) {
-  let domain;
-
-  if (rawDomain.startsWith('http://') || rawDomain.startsWith('https://')) {
-    domain = new URL(rawDomain).host;
-  } else {
-    domain = new URL('http://' + rawDomain).host;
-  }
+  let domain = parseDomain(rawDomain);
 
   const result = []; // return value, only records with URLS that don't 404
   const allRecords = []; // stores all records, even those that 404
