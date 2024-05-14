@@ -19,15 +19,17 @@ function randomUserAgent() {
  * given query.
  *
  * @param {string} query - The query to be passed to Google
+ * @param {number} resultCount - Number of search results to request from Google
  * @returns {Set<string>} - The set of domains found in search results
  * */
-async function getSearchResultDomains(query) {
+async function getSearchResultDomains(query, resultCount=30) {
   const userAgent = randomUserAgent();
   console.log('user agent: ' + userAgent)
   const headers = {
     "User-Agent": userAgent
   }
-  const response = await fetch('https://google.com/search?q=' + encodeURI(query), {
+  const url = `https://google.com/search?q=${encodeURI(query)}&num=${resultCount}`;
+  const response = await fetch(url, {
     headers: headers
   });
   const responseText = await response.text();
